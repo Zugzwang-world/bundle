@@ -76,12 +76,17 @@ export function reducer(state, action) {
 
     case 'GENERATION_DONE': {
       if (state.phase !== 'generating' || action.runId !== state.runId) return state;
+      // INV-4, belt and braces: no run resolves while memory is off. Unreachable by
+      // construction (TOGGLE_MEMORY re-routes 'generating' → 'paused', and the resume
+      // path restarts the run with a fresh runId) — which is why it is worth asserting.
+      if (!state.memoryOn) return state;
       if (state.failNext) return { ...state, phase: 'failed', failNext: false };
       if (state.scenario === 'fresh') return { ...state, phase: 'thin' };
       return { ...state, phase: 'ready', everFormed: true, journeys: mark(state, 'J1') };
     }
 
     case 'RETRY': // §9 COULDN'T BUNDLE — retry is one tap (A12)
+      if (!state.memoryOn) return state; // INV-4: Bundle never runs where memory does not
       return { ...state, phase: 'generating', runId: state.runId + 1 };
 
     case 'TOGGLE_MEMORY': {
@@ -250,27 +255,48 @@ export function useBundle() {
    One derivation feeds both surfaces, so the sidebar and the Chats and
    tasks page can never disagree (A13).                                */
 
+/* §7.2 · INV-4 · A5 — who may be bundled, stated as a rule and named.
+   "Chats inside Projects are never candidates: they are already grouped, by the
+   person, which outranks any inference. Incognito chats are never candidates:
+   they sit outside memory, and Bundle sees only what memory sees."
+   Incognito chats never reach this index at all — outside memory is outside the
+   prototype's data — but the disqualification lives here regardless, so that a
+   chat property added later cannot flow into a bundle by default. */
+export function isBundleCandidate(chat) {
+  if (chat.project) return false; // already the person's grouping; it outranks inference
+  if (chat.incognito) return false; // outside memory, therefore outside Bundle
+  return true;
+}
+
 export function selectIndex(state) {
   const base = state.scenario === 'meera' ? MEERA_CHATS : FRESH_CHATS;
   const arrivals = INCOMING_CHATS.filter((ch) => state.arrivals.includes(ch.id));
   const all = [...arrivals, ...base].filter((ch) => !state.deleted[ch.id]);
 
   const nonProject = all.filter((ch) => !ch.project).sort(byNewest);
-  const projects = [
-    {
-      name: 'bookclub/notes',
-      chats: all.filter((ch) => ch.project === 'bookclub/notes').sort(byNewest),
-    },
-  ].filter((p) => p.chats.length > 0);
 
-  const showBundles = state.phase === 'ready';
+  // Project sections are derived from the chats themselves, which is what makes the
+  // derivation total: every chat lands in exactly one of bundles / listChats / projects.
+  // A hardcoded list of project names cannot place a chat in a project it does not know
+  // about, and such a chat rendered nowhere — losing a chat is INV-2's named failure,
+  // and it counts whether a bundle action did it or the derivation did.
+  const projects = [...new Set(all.filter((ch) => ch.project).map((ch) => ch.project))]
+    .map((name) => ({ name, chats: all.filter((ch) => ch.project === name).sort(byNewest) }));
+
+  // Bundle membership is built from the candidacy rule above — never from nonProject,
+  // whose exclusion of project chats is a side effect of assembling the list. Candidates
+  // are a subset of nonProject, so the listChats subtraction below stays exact (INV-1).
+  const candidates = all.filter(isBundleCandidate).sort(byNewest);
+
+  // INV-4 — the derivation tests memory itself rather than trusting phase to encode it.
+  const showBundles = state.phase === 'ready' && state.memoryOn;
 
   let bundles = [];
   if (showBundles) {
     bundles = Object.values(CONCERNS)
       .filter((def) => !state.hidden[def.key])
       .map((def) => {
-        const chats = nonProject.filter((ch) => ch.concern === def.key && !state.removed[ch.id]);
+        const chats = candidates.filter((ch) => ch.concern === def.key && !state.removed[ch.id]);
         return {
           key: def.key,
           name: state.names[def.key] || def.defaultName, // INV-3
@@ -291,9 +317,4 @@ export function selectIndex(state) {
   const listChats = showBundles ? nonProject.filter((ch) => !bundledIds.has(ch.id)) : nonProject;
 
   return { projects, bundles, listChats, showBundles, chatCount: nonProject.length };
-}
-
-export function isBundled(state, chatId) {
-  const { bundles } = selectIndex(state);
-  return bundles.some((b) => b.chats.some((ch) => ch.id === chatId));
 }

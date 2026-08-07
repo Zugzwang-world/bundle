@@ -1,4 +1,5 @@
-import { reducer, freshState, selectIndex } from '../src/state/store';
+import { reducer, freshState, selectIndex, isBundleCandidate } from '../src/state/store';
+import { MEERA_CHATS, FRESH_CHATS, INCOMING_CHATS, sortKey } from '../src/data/chats';
 
 let s = freshState();
 const d = (a) => { s = reducer(s, a); };
@@ -92,5 +93,99 @@ d({ type: 'TOGGLE_BUNDLE' });
 d({ type: 'GENERATION_DONE', runId: s.runId });
 assert(s.phase === 'thin', 'fresh account → too little history');
 assert(selectIndex(s).listChats.length === 4, 'thin: 4 chats, untouched');
+
+// A5 — no bundle ever contains a Project chat or an incognito chat (INV-4 · §7.2).
+// The rule is asserted where it lives (the predicate) and where it lands (the bundles).
+s = freshState();
+d({ type: 'TOGGLE_BUNDLE' });
+d({ type: 'GENERATION_DONE', runId: s.runId });
+ix = selectIndex(s);
+const bundled = ix.bundles.flatMap((b) => b.chats);
+assert(bundled.length === 26, 'A5 precondition: bundles formed (9+5+12)');
+assert(ix.projects[0].chats.length === 2, 'A5 precondition: project chats exist to be excluded');
+assert(!bundled.some((c) => c.project), 'A5 no bundle contains a Project chat');
+assert(!bundled.some((c) => c.incognito), 'A5 no bundle contains an incognito chat');
+assert(!isBundleCandidate({ id: 'z1', concern: 'retirement', project: 'bookclub/notes' }), 'A5 candidacy rejects a project chat');
+assert(!isBundleCandidate({ id: 'z2', concern: 'retirement', incognito: true }), 'A5 candidacy rejects an incognito chat');
+assert(isBundleCandidate({ id: 'z3', concern: 'retirement' }), 'A5 candidacy admits an ordinary chat');
+
+// §11 — order is boring on purpose. Membership comes from an explicitly sorted candidate
+// list, not from the order chats happen to be authored in data/chats.js.
+const descending = (keys) => keys.every((k, i) => i === 0 || keys[i - 1] >= k);
+s = freshState();
+d({ type: 'TOGGLE_BUNDLE' });
+d({ type: 'GENERATION_DONE', runId: s.runId });
+d({ type: 'NEW_CHAT' }); // n1 · retirement · "today" — exercises the sortKey path
+d({ type: 'NEW_CHAT' }); // n2 · spanish · "today"
+ix = selectIndex(s);
+assert(descending(ix.bundles.map((b) => sortKey(b.chats[0].date))), '§11 bundles ordered by most recent activity');
+for (const b of ix.bundles) {
+  assert(descending(b.chats.map((ch) => sortKey(ch.date))), `§11 rows newest-first inside ${b.key}`);
+}
+assert(ix.bundles[0].chats[0].id === 'n1', '§11 newest chat leads its bundle');
+assert(descending(ix.listChats.map((ch) => sortKey(ch.date))), '§11 All chats stays newest-first');
+
+// The derivation is total: no chat is lost or duplicated across the three outputs.
+// Losing a chat is INV-2's named failure, and a derivation can do it as surely as an action.
+const partition = (state, label) => {
+  const base = state.scenario === 'meera' ? MEERA_CHATS : FRESH_CHATS;
+  const expected = [...INCOMING_CHATS.filter((ch) => state.arrivals.includes(ch.id)), ...base]
+    .filter((ch) => !state.deleted[ch.id])
+    .map((ch) => ch.id);
+  const i = selectIndex(state);
+  const seen = [
+    ...i.bundles.flatMap((b) => b.chats.map((ch) => ch.id)),
+    ...i.listChats.map((ch) => ch.id),
+    ...i.projects.flatMap((p) => p.chats.map((ch) => ch.id)),
+  ];
+  assert(new Set(seen).size === seen.length, `${label}: no chat appears twice`);
+  assert(seen.length === expected.length, `${label}: ${seen.length} visible = ${expected.length} in data`);
+  assert(expected.every((id) => seen.includes(id)), `${label}: every chat appears somewhere`);
+};
+
+partition(freshState(), 'partition · off');
+partition(s, 'partition · ready + arrivals');
+d({ type: 'COMMIT_RENAME', key: 'apartment', name: "Anaya's flat" });
+d({ type: 'REMOVE_FROM_BUNDLE', chatId: 'r4' });
+d({ type: 'HIDE_BUNDLE', key: 'spanish' });
+d({ type: 'DELETE_CHAT', chatId: 'u1' });
+partition(s, 'partition · after corrections');
+s = freshState('fresh');
+d({ type: 'TOGGLE_BUNDLE' });
+d({ type: 'GENERATION_DONE', runId: s.runId });
+partition(s, 'partition · fresh account');
+
+// A chat in a project the derivation was never told about used to render nowhere.
+// Injected here rather than shipped in the demo data, then removed again.
+MEERA_CHATS.push({ id: 'x1', title: 'Recipe experiments', date: '2026-06-20', concern: null, project: 'kitchen/notes' });
+s = freshState();
+d({ type: 'TOGGLE_BUNDLE' });
+d({ type: 'GENERATION_DONE', runId: s.runId });
+ix = selectIndex(s);
+const kitchen = ix.projects.find((p) => p.name === 'kitchen/notes');
+assert(kitchen && kitchen.chats.some((ch) => ch.id === 'x1'), 'a second project gets its own section');
+assert(ix.projects.some((p) => p.name === 'bookclub/notes'), 'the original project section survives');
+assert(!ix.bundles.flatMap((b) => b.chats).some((ch) => ch.id === 'x1'), 'A5 the injected project chat still never bundles');
+partition(s, 'partition · unknown project');
+MEERA_CHATS.pop();
+
+// INV-4 regression — the fail → memory-off → RETRY → GENERATION_DONE path.
+// It used to reach phase 'ready' with memoryOn false and render three bundles.
+s = freshState();
+d({ type: 'SET_FAIL_NEXT', value: true });
+d({ type: 'TOGGLE_BUNDLE' });
+d({ type: 'GENERATION_DONE', runId: s.runId });
+assert(s.phase === 'failed', 'INV-4 regression setup: failed state reached');
+d({ type: 'TOGGLE_MEMORY' });
+assert(!s.memoryOn && s.phase === 'paused', 'INV-4 regression setup: memory off pauses');
+d({ type: 'RETRY' });
+assert(s.phase === 'paused', 'INV-4 RETRY is inert while memory is off');
+d({ type: 'GENERATION_DONE', runId: s.runId });
+assert(s.phase !== 'ready', 'INV-4 no path resolves to ready with memory off');
+assert(!selectIndex(s).showBundles, 'INV-4 no bundles render with memory off');
+
+// INV-4 is held by the derivation itself, not inferred from phase.
+assert(!selectIndex({ ...s, phase: 'ready', memoryOn: false }).showBundles,
+  'INV-4 selectIndex refuses bundles with memory off, whatever phase claims');
 
 console.log('\nstate machine: all checks passed');

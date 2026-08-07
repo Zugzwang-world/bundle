@@ -70,7 +70,7 @@ respected (framer `useReducedMotion` in the hero + CSS media query).
 |---|---|
 | §7 toggle, one preference two surfaces (A13) | `ChatsPage.jsx` controls + `Sidebar.jsx` Recents header (mini `Toggle`), both dispatch `TOGGLE_BUNDLE`, both read `selectIndex` |
 | §7.1 anatomy (chevron/name/count/spark/menu/rows) | `Rows.jsx → BundleSection`, `Menus.jsx` |
-| §7.2 formation standard, no residue bucket | `data/chats.js` concerns + `selectIndex` (ungrouped chats just stay in `listChats`) |
+| §7.2 formation standard, no residue bucket | `data/chats.js` concerns + `selectIndex` (ungrouped chats just stay in `listChats`); candidacy is `isBundleCandidate` in `store.jsx` |
 | J-1 turn on → skeletons → formation | `TOGGLE_BUNDLE` → `generating` (2.2 s) → `GENERATION_DONE`; `ChatsPage.jsx → Skeletons` |
 | J-2 new chat joins | `NEW_CHAT` (Demo rail), `INCOMING_CHATS`, highlight via `highlightId` |
 | J-3 rename inline, never overwritten | `Rows.jsx → RenameField`, `COMMIT_RENAME`, `names` map wins in `selectIndex` |
@@ -106,11 +106,21 @@ These strings are verbatim from the spec. Never rephrase, retitle, or "improve" 
 1. **INV-1** — bundles render *above* `listChats`, never instead of; every phase keeps
    the list mounted.
 2. **INV-2** — no reducer action on a bundle may mutate, remove, or reorder chat data.
-   Only `DELETE_CHAT` (the pre-existing product behaviour, A14) removes a chat.
+   Only `DELETE_CHAT` (the pre-existing product behaviour, A14) removes a chat. The
+   derivation is held to the same standard: `selectIndex` is **total**, so every chat
+   appears exactly once across `bundles` + `listChats` + `projects`. Project sections are
+   derived from the chats' own `project` values for that reason — a fixed list of project
+   names silently drops chats in any project it does not name.
 3. **INV-3** — rename/remove/hide each ≤ 2 clicks from the bundle name; `names[key]`
    always outranks the generated default.
-4. **INV-4** — project chats and (conceptually) incognito chats never enter
-   `selectIndex` bundle membership; memory off ⇒ never `ready`.
+4. **INV-4** — project chats and incognito chats never enter bundle membership; memory
+   off ⇒ never bundled. Enforced in two places on purpose: `isBundleCandidate(chat)` is
+   the single stated candidacy rule (§7.2) and bundles are built only from chats that
+   pass it, while `showBundles` tests `state.memoryOn` **directly** rather than inferring
+   it from `phase` — and `TOGGLE_BUNDLE`, `RETRY`, and `GENERATION_DONE` each refuse to
+   run or resolve with memory off, so no sequence reaches `ready` while it is off.
+   Never rebuild membership from `nonProject`: that variable is computed for the list,
+   where excluding project chats is a side effect rather than the rule.
 
 ## Resolved ambiguities (decisions already made — keep them)
 
