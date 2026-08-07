@@ -1,0 +1,103 @@
+/* ────────────────────────────────────────────────────────────────────
+   Bundle · ZW-FS-001 — base tokens
+   Two worlds, one site:
+     · the DOCUMENT world (landing) — ink, bone, gold spark, mono rules,
+       the specification-as-artifact aesthetic of the Zugzwang PDF
+     · the PRODUCT world (prototype frames) — Claude's shipped dark
+       habitat: warm greys, coral, quiet borders (spec: "judged in its
+       real habitat")
+   The spark ✦ is the one glyph that crosses between them.
+   ──────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* document world */
+  --ink: #131211;
+  --ink-2: #1a1918;
+  --ink-3: #201f1d;
+  --bone: #efece4;
+  --bone-dim: #9b968b;
+  --bone-faint: #6d685f;
+  --hair: rgba(239, 236, 228, 0.1);
+  --hair-strong: rgba(239, 236, 228, 0.2);
+  --spark: #e2b96f;
+  --spark-soft: rgba(226, 185, 111, 0.14);
+
+  /* product world — Claude habitat */
+  --cl-bg: #262624;
+  --cl-side: #1f1e1c;
+  --cl-raise: #2f2e2b;
+  --cl-raise-2: #383733;
+  --cl-hover: rgba(255, 255, 255, 0.05);
+  --cl-text: #f2ede4;
+  --cl-dim: #b6afa2;
+  --cl-faint: #8b8478;
+  --cl-hair: rgba(255, 255, 255, 0.08);
+  --cl-coral: #d97757;
+  --cl-coral-soft: rgba(217, 119, 87, 0.16);
+  --cl-danger: #e0705f;
+
+  /* type */
+  --font-sans: 'Archivo Variable', 'Archivo', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--bone);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root { min-height: 100vh; }
+
+h1, h2, h3, h4, p { margin: 0; }
+button { font-family: inherit; cursor: pointer; }
+a { color: inherit; }
+input { font-family: inherit; }
+
+::selection { background: rgba(226, 185, 111, 0.28); color: #fff; }
+
+:focus-visible {
+  outline: 2px solid var(--spark);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* mono utility voice — running heads, eyebrows, figure captions */
+.mono {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* the display voice — Archivo pushed wide and heavy, like the spec cover */
+.display {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-stretch: 118%;
+  letter-spacing: -0.015em;
+  line-height: 0.98;
+}
+
+.ic-spark { color: var(--spark); flex: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
