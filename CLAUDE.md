@@ -138,6 +138,23 @@ These strings are verbatim from the spec. Never rephrase, retitle, or "improve" 
   the document world — they are not part of the proposal and must stay outside the
   `.cl-app` frame.
 
+## Known findings
+
+**GHSA-qwww-vcr4-c8h2** — react-router RSC-mode CSRF bypass. `npm audit` reports it as
+**high** against the installed `react-router-dom` 7.18.2 (via `react-router`, flagged range
+`7.12.0 - 8.2.0`). Assessed and accepted; **do not run `npm audit fix --force`.**
+
+- Upstream lists 7.18.2 as a patched release for the 7.x line. The GitHub Advisory
+  Database range is coarser than the real fix boundary and flags it anyway.
+- The advisory only affects apps using the unstable RSC APIs. This is a client-only SPA:
+  no server, no actions, no RSC. The vulnerable path is not reachable here.
+- npm's proposed fix is a **downgrade** to `react-router-dom@7.11.0`, which reintroduces
+  advisories fixed later in the 7.x line — strictly worse than staying put.
+- The forward fix is the react-router v8 migration. Not urgent; do it as planned work,
+  not as an audit response.
+- Consequence: **an `npm audit` gate in CI will fail until that migration lands.** Expect
+  it, and do not let a red gate drive the downgrade — waive or threshold it instead.
+
 ## Deployment
 
 SPA on any static host. `public/_redirects` covers Netlify; Vercel/Cloudflare Pages
