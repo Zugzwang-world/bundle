@@ -474,3 +474,13 @@
 @media (max-width: 640px) {
   .proto-bar-title { display: none; }
 }
+
+/* v0.2 · live chat composer in the demo rail */
+.dr-live { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.dr-ta { width: 100%; box-sizing: border-box; resize: vertical; font: inherit; font-size: 12.5px; line-height: 1.4;
+  color: var(--bone); background: var(--ink-3); border: 1px solid var(--hair); border-radius: 6px; padding: 8px; }
+.dr-ta:focus { outline: none; border-color: var(--hair-strong); }
+.dr-ta:disabled { opacity: .45; }
+.dr-live-out { border: 1px solid var(--hair); border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 3px; }
+.dr-live-title { font-weight: 600; font-size: 13px; color: var(--bone); }
+.dr-live-sum { font-size: 12px; line-height: 1.45; color: var(--bone-dim, var(--bone)); }

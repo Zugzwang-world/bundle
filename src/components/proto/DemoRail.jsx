@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { INCOMING_CHATS } from '../../data/chats';
 import { JOURNEYS, useBundle } from '../../state/store';
 import { Spark } from '../Icons';
+import LiveChat from './LiveChat';
 
 /* Margin notes for the prototype — the document world annotating the
    product world. Everything here is demo scaffolding, not the feature. */
@@ -61,6 +62,8 @@ export default function DemoRail() {
               New account
             </button>
           </div>
+
+          <LiveChat />
 
           <button
             type="button"
