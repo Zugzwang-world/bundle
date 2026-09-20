@@ -36,6 +36,9 @@ async function configureWasm(env) {
 
 async function configureEnv(env, local) {
   if (isBrowser) {
+    // transformers.js disables local models in the browser by default; the vendored copy under
+    // public/models is the whole point of the booth setup, so turn it on explicitly.
+    env.allowLocalModels = true;
     env.allowRemoteModels = !local;
     env.localModelPath = CONFIG.localModelPath;
     await configureWasm(env);

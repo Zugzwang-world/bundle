@@ -31,11 +31,18 @@ named, collapsible sections above the chronological list. A bundle is a view, no
 
 | Piece | Status |
 |---|---|
-| The toggle, six states, rename / remove / hide with Undo, off→on resume, J-1…J-7 | **Real**, tested by `npm test` |
-| A new chat: Claude replies, then writes the chat's card (title + summary) | **Real** — `claude-fable-5-1` via the Messages API |
-| Placement of the new chat into a bundle, with runner-up and a one-line reason | **Interim** — Claude picks among the known concerns inside the card call |
-| Bundle formation for the 36 fixture chats | **Simulated** — the fixture groups are hard-coded; the 2.2 s "generating" state is a timer |
-| Browser-side embeddings, clustering, formation rules, naming, safety gate, stage view | **Not built yet** — specified in [docs/HANDOVER_v0.2.md](docs/HANDOVER_v0.2.md) |
+| The toggle, six states, rename / remove / hide with Undo, off→on resume, J-1…J-7 | **Real**, tested (`npm test`, `tests/state.test.js`) |
+| A new chat: Claude replies, then writes the chat's card (title + summary) | **Real** — `claude-fable-5-1` via the Messages API, proxied on the deployed site |
+| Bundle formation: embeddings in the browser (transformers.js, MiniLM), cosine similarity, agglomerative clustering, the spec's formation rules | **Real** — `src/engine/`, tuned on the Meera life (`docs/STATE.md`) |
+| Naming a concern, gating the name, breaking a tie | **Real** — Claude, only where judgement is needed (`src/engine/name.js`, `src/safety/gate.js`, `src/engine/tiebreak.js`) |
+| Safety gate: lexicon + person-name heuristic in code, then Claude; a health cluster renders as `Health` | **Real** — 95 tests in `tests/safety.test.js` |
+| Stability merge: your corrections outrank the model, names freeze after first render, attach never renames | **Real** — `src/engine/merge.js`, persisted to localStorage |
+| The stage view: seven cards for Form, five for Attach, story mode (~20 s) and inspect mode with raw requests and responses, d3-force concern map | **Real** — `src/stage/` |
+| Engine `sim` mode in the demo rail (the v0.1 hard-coded groups on a 2.2 s timer) | Kept as a fallback for offline demos without an API key |
+
+Verified in a real browser against the deployed site on 2026-09-20: Bundle on → four bundles
+(Retirement, Spanish, Health, Flat hunt) in about 40 s; "How do I say 'the landlord raised the
+rent' in Spanish?" → joins the Spanish bundle, Apartment shown as runner-up with a reason.
 
 ## Quickstart
 
@@ -54,7 +61,9 @@ land in its bundle.
 | `npm run build` | Production build to `dist/` |
 | `npm run preview` | Serve the production build |
 | `npm test` | State-machine tests — journeys + acceptance criteria against the reducer |
+| `npm run test:unit` | Vitest: state, merge, safety corpus, similarity, clustering, rules, engine on the Meera life (286 tests) |
 | `npm run smoke` | SSR-renders both routes and asserts key content |
+| `npm run gen:summaries` | Regenerate fixture summaries with Claude (idempotent) |
 
 ## How the API key is handled
 
@@ -81,10 +90,17 @@ netlify deploy --prod --dir=dist
 ```
 public/Bundle_ZW-FS-001_v1_0.pdf   the specification (linked from the site)
 public/pitch.html                  the pitch deck
+public/models/                     vendored embedding model + ONNX runtime (offline booth)
 docs/HANDOVER_v0.2.md              product + technical handover for v0.2
+docs/CONTRACT.md                   the integration contract the five lanes built against
+docs/STATE.md                      fixtures, tuning evidence, final thresholds
 netlify/functions/messages.mjs     server-side proxy for the Messages API
 src/
-  engine/                anthropic.js (fetch wrapper) · reply.js · card.js
+  engine/                anthropic.js · reply.js · card.js · name.js · tiebreak.js · prompts.js
+                         embed.js · similarity.js · cluster.js · rules.js · attach.js · form.js
+                         merge.js (B6 stability rules) · pipeline.js (Form and Attach runs)
+  safety/                lexicon.js · gate.js (layer 1 code, layer 2 Claude)
+  stage/                 Stage.jsx · cards/ · story.js (captions) · trace.js · runner.js · mock.js
   data/chats.js          Meera's four months, fresh-account data, incoming chats
   state/store.jsx        reducer + provider + selectIndex (one derivation, both surfaces)
   components/landing/    hero gather animation, live mini-demo, all sections
