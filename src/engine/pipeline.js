@@ -114,7 +114,7 @@ export async function runAttach(card, ctx) {
     const t0 = now();
     emit('embed', 'running', { input: { text: `${card.title}. ${card.summary || ''}` } });
     const v = await vectorFor(card);
-    emit('embed', 'done', { ms: Math.round(now() - t0), output: { dims: v.length, sample: Array.from(v.slice(0, 8)).map((x) => +x.toFixed(4)) } });
+    emit('embed', 'done', { ms: Math.round(now() - t0), output: { count: 1, dims: v.length, sample: Array.from(v.slice(0, 8)).map((x) => +x.toFixed(4)) } });
 
     stage = 'attach';
     emit('attach', 'running');
