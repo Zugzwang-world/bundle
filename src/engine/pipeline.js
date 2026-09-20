@@ -1,15 +1,16 @@
 // Integration glue: the Form and Attach runs. Code stages come from src/engine/form.js and
 // friends; Claude is called only for naming, gating and tie-breaking. Every stage emits a
 // stage event (docs/CONTRACT.md) so the stage view can show what happened.
-import { CONFIG } from './config';
-import { formClusters } from './form';
-import { embedText } from './embed';
-import { centroid } from './cluster';
-import { nearest } from './attach';
-import { nameCluster, isNonName } from './name';
-import { tieBreak } from './tiebreak';
-import { gateName } from '../safety/gate';
-import { mergeBundles } from './merge';
+import { CONFIG } from './config.js';
+import { formClusters } from './form.js';
+import { embedText } from './embed.js';
+import { centroid } from './cluster.js';
+import { nearest } from './attach.js';
+import { cosine } from './similarity.js';
+import { nameCluster, isNonName } from './name.js';
+import { tieBreak } from './tiebreak.js';
+import { gateName } from '../safety/gate.js';
+import { mergeBundles } from './merge.js';
 
 // Vectors from the last Form run, so Attach can build centroids without re-embedding.
 let lastVectors = new Map();
@@ -46,30 +47,32 @@ export async function runForm(cards, ctx) {
     const nameOut = [];
     const gateOut = [];
     emit('name', 'running', { input: { candidates: formed.candidates.length } });
-    for (const cluster of formed.candidates) {
+    // All candidates are named in parallel: each call is independent, and the booth waits.
+    await Promise.all(formed.candidates.map(async (cluster, i) => {
       const members = cluster.chatIds.map((id) => byId[id]).filter(Boolean);
       const t0 = now();
       const res = await nameCluster(pick(members));
       const out = res.output || {};
       const refused = out.refuse || !out.name || isNonName(out.name);
-      nameOut.push({ key: cluster.key, size: members.length, proposed: refused ? null : out.name, refused, reason: out.reason || null, raw: res.raw, ms: Math.round(now() - t0) });
-      if (refused) { rejected.push({ chatIds: cluster.chatIds, reason: 'no_specific_name', detail: out.reason }); continue; }
+      nameOut[i] = { key: cluster.key, size: members.length, proposed: refused ? null : out.name, refused, domain: out.domain || null, language: out.language || null, sensitive: !!out.sensitive, concern: out.concern || null, reason: out.reason || null, raw: res.raw, ms: Math.round(now() - t0) };
+      if (refused) { rejected.push({ chatIds: cluster.chatIds, reason: 'no_specific_name', detail: out.reason }); return; }
       names.push({ key: cluster.key, ...out, proposed: out.name });
-    }
-    emit('name', 'done', { output: { results: nameOut.map(({ raw, ...r }) => r), rejected: rejected.filter((r) => r.reason === 'no_specific_name') }, raw: { calls: nameOut.map((r) => r.raw) } });
+    }));
+    emit('name', 'done', { output: { results: nameOut.filter(Boolean).map(({ raw, ...r }) => r), rejected: rejected.filter((r) => r.reason === 'no_specific_name') }, raw: { calls: nameOut.filter(Boolean).map((r) => r.raw) } });
 
     stage = 'gate';
     emit('gate', 'running', { input: { names: names.map((n) => n.name) } });
     const kept = [];
-    for (const n of names) {
-      const members = n.key ? formed.candidates.find((c) => c.key === n.key).chatIds.map((id) => byId[id]) : [];
+    await Promise.all(names.map(async (n, i) => {
+      const cluster = formed.candidates.find((c) => c.key === n.key);
+      const members = cluster.chatIds.map((id) => byId[id]);
       const t0 = now();
       const g = await gateName({ name: n.name, domain: n.domain, sensitive: n.sensitive }, pick(members));
-      gateOut.push({ key: n.key, proposed: n.name, decision: g.decision, final: g.name, layer: g.layer, reason: g.reason, raw: g.raw, ms: Math.round(now() - t0) });
-      if (g.decision === 'refuse' || !g.name) { rejected.push({ chatIds: formed.candidates.find((c) => c.key === n.key).chatIds, reason: 'no_specific_name', detail: g.reason }); continue; }
+      gateOut[i] = { key: n.key, proposed: n.name, decision: g.decision, final: g.name, layer: g.layer, reason: g.reason, term: g.term || null, raw: g.raw, ms: Math.round(now() - t0) };
+      if (g.decision === 'refuse' || !g.name) { rejected.push({ chatIds: cluster.chatIds, reason: 'no_specific_name', detail: g.reason }); return; }
       kept.push({ ...n, name: g.name, gated: g.decision !== 'pass' });
-    }
-    emit('gate', 'done', { output: { results: gateOut.map(({ raw, ...r }) => r) }, raw: { calls: gateOut.map((r) => r.raw).filter(Boolean) } });
+    }));
+    emit('gate', 'done', { output: { results: gateOut.filter(Boolean).map(({ raw, ...r }) => r) }, raw: { calls: gateOut.filter(Boolean).map((r) => r.raw).filter(Boolean) } });
 
     // ── merge: stability rules over the reducer state ───────────────────
     stage = 'merge';
@@ -124,7 +127,13 @@ export async function runAttach(card, ctx) {
     }
     const near = nearest(v, withCentroids, CONFIG);
     const nameOf = (id) => withCentroids.find((b) => b.id === id)?.name || null;
-    emit('attach', 'done', { ms: Math.round(now() - t0), output: { scores: near.scores.map((s) => ({ ...s, name: nameOf(s.id) })), bundleId: near.bundleId, runnerUp: near.runnerUp, tie: near.tie, tauAttach: CONFIG.tauAttach, delta: CONFIG.delta } });
+    // Nearest individual chats, for the map card: every cached vector scored against the new one.
+    const scored = [];
+    for (const [id, vec] of lastVectors) if (id !== card.id && byId[id]) scored.push({ id, score: +cosine(v, vec).toFixed(3) });
+    scored.sort((a, b) => b.score - a.score);
+    const neighbours = scored.slice(0, 3);
+    const edges = scored.filter((s) => s.score >= CONFIG.tauEdge).map((s) => ({ a: card.id, b: s.id, score: s.score }));
+    emit('attach', 'done', { ms: Math.round(now() - t0), output: { scores: near.scores.map((s) => ({ ...s, name: nameOf(s.id) })), bundleId: near.bundleId, runnerUp: near.runnerUp, tie: near.tie, tauAttach: CONFIG.tauAttach, delta: CONFIG.delta, neighbours, edges, nodes: [...lastVectors.keys()].filter((id) => byId[id] || id === card.id).map((id) => ({ id, title: byId[id]?.title || card.title })) } });
 
     let bundleId = near.bundleId;
     let runnerUp = near.runnerUp;

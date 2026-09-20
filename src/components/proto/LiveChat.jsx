@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useBundle } from '../../state/store';
 import { hasKey, config } from '../../engine/anthropic';
 import { reply } from '../../engine/reply';
 import { card } from '../../engine/card';
+import { runAttach } from '../../stage/runner';
 
 const SUGGESTED =
   'My bank says the SCSS interest is credited quarterly — should I move part of it to a 5-year tax-saver FD instead?';
@@ -11,6 +12,8 @@ const SUGGESTED =
    The card is dispatched as a chat; the list beneath never moves. */
 export default function LiveChat() {
   const { state, dispatch } = useBundle();
+  const stateRef = useRef(state);
+  stateRef.current = state;
   const [text, setText] = useState(SUGGESTED);
   const [stage, setStage] = useState('idle'); // idle | reply | card | done | error
   const [result, setResult] = useState(null);
@@ -37,6 +40,13 @@ export default function LiveChat() {
         source: 'new',
       };
       dispatch({ type: 'CHAT_CREATED', chat });
+      // v0.2 beat 3 — with Bundle on and the live engine, the new chat runs Attach on the
+      // stage (src/engine/pipeline.js if present, else the scripted mock). In the sim
+      // engine the card's concern hint places it, as in v0.1.
+      const now = stateRef.current;
+      if (now.engine === 'live' && now.bundleOn && now.memoryOn && now.phase === 'ready') {
+        runAttach(chat, { state: now, dispatch, card: c });
+      }
       setResult({ reply: r.output, card: c.output, ms: { reply: r.ms, card: c.ms } });
       setStage('done');
       setText('');
@@ -78,8 +88,9 @@ export default function LiveChat() {
           <div className="dr-live-title">{result.card.title}</div>
           <div className="dr-live-sum">{result.card.summary}</div>
           <div className="sub mono" style={{ fontSize: 9, color: 'var(--bone-faint)', marginTop: 4 }}>
-            PLACED → {result.card.concern || 'none'}
-            {result.card.runner_up ? ` · runner-up ${result.card.runner_up}` : ''}
+            {state.engine === 'live'
+              ? 'ATTACH → on the stage'
+              : `PLACED → ${result.card.concern || 'none'}${result.card.runner_up ? ` · runner-up ${result.card.runner_up}` : ''}`}
           </div>
           <div className="dr-live-sum" style={{ opacity: 0.8 }}>{result.card.reason}</div>
           <details style={{ marginTop: 6 }}>

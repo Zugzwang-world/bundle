@@ -3,6 +3,7 @@ import { INCOMING_CHATS } from '../../data/chats';
 import { JOURNEYS, useBundle } from '../../state/store';
 import { Spark } from '../Icons';
 import LiveChat from './LiveChat';
+import { runAttach } from '../../stage/runner';
 
 /* Margin notes for the prototype — the document world annotating the
    product world. Everything here is demo scaffolding, not the feature. */
@@ -63,13 +64,44 @@ export default function DemoRail() {
             </button>
           </div>
 
+          {/* v0.2 — which engine resolves a run: the v0.1 timer, or the pipeline + stage view. */}
+          <div className="dr-switchrow" style={{ paddingBottom: 4 }}>
+            <span className="lb">Engine</span>
+            <span className="sub mono" style={{ fontSize: 9, color: 'var(--bone-faint)' }}>v0.2</span>
+            <div className="dr-seg" role="group" aria-label="Engine" style={{ width: 132 }}>
+              <button
+                type="button"
+                className={state.engine !== 'live' ? 'is-on' : ''}
+                onClick={() => dispatch({ type: 'SET_ENGINE', mode: 'sim' })}
+                title="v0.1 path — 2.2 s timer, fixture groups"
+              >
+                sim
+              </button>
+              <button
+                type="button"
+                className={state.engine === 'live' ? 'is-on' : ''}
+                onClick={() => dispatch({ type: 'SET_ENGINE', mode: 'live' })}
+                title="v0.2 path — the pipeline runs on the stage"
+              >
+                live
+              </button>
+            </div>
+          </div>
+
           <LiveChat />
 
           <button
             type="button"
             className="dr-btn"
             disabled={state.scenario === 'fresh' || state.arrivals.length >= INCOMING_CHATS.length}
-            onClick={() => dispatch({ type: 'NEW_CHAT' })}
+            onClick={() => {
+              const chat = INCOMING_CHATS[state.arrivals.length];
+              dispatch({ type: 'NEW_CHAT' });
+              // Live engine: the arrival runs Attach on the stage, like a real new chat.
+              if (chat && state.engine === 'live' && state.bundleOn && state.memoryOn && state.phase === 'ready') {
+                runAttach(chat, { state, dispatch });
+              }
+            }}
           >
             A new chat arrives
             <span className="sub">J-2 · {state.arrivals.length}/{INCOMING_CHATS.length}</span>

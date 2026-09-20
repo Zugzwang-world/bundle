@@ -1,0 +1,222 @@
+/* ────────────────────────────────────────────────────────────────────
+   STAGE VIEW — the hood, open (HANDOVER B8). Document world: ink, bone,
+   gold spark, IBM Plex Mono for technique lines. Class prefix: zw-
+   Sits beside the .cl-app frame, never inside it.
+   ──────────────────────────────────────────────────────────────────── */
+
+.zw-stage-wrap {
+  flex: none;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--ink);
+  border-left: 1px solid var(--hair);
+  display: flex;
+}
+.zw-stage-wrap.is-stacked { border-left: none; border-top: 1px solid var(--hair); }
+
+.zw-stage {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 18px 24px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(239, 236, 228, 0.16) transparent;
+  color: var(--bone);
+  font-size: 13px;
+}
+
+.zw-mono {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.zw-dim { color: var(--bone-faint); }
+.zw-fine { font-size: 12px; line-height: 1.5; color: var(--bone-dim); }
+.zw-ok { color: var(--spark); }
+.grow { flex: 1; }
+
+/* ── header ─────────────────────────────────────────────────────── */
+.zw-stage-head {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding-bottom: 10px; border-bottom: 1px solid var(--hair);
+  color: var(--bone-dim);
+}
+.zw-stage-kind { color: var(--spark); }
+.zw-stage-model { color: var(--bone-faint); }
+.zw-stage-prog { color: var(--bone-faint); font-variant-numeric: tabular-nums; }
+.zw-seg { display: flex; border: 1px solid var(--hair-strong); border-radius: 7px; overflow: hidden; }
+.zw-seg button {
+  background: none; border: none; padding: 5px 11px;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--bone-faint);
+}
+.zw-seg button.is-on { background: var(--spark-soft); color: var(--spark); }
+.zw-collapse {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: none; border: 1px solid var(--hair-strong); color: var(--bone-dim);
+  border-radius: 7px; padding: 5px 10px;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+}
+.zw-collapse:hover { color: var(--bone); border-color: var(--bone-faint); }
+.zw-collapse kbd {
+  font-family: var(--font-mono); font-size: 10px; border: 1px solid var(--hair-strong);
+  border-radius: 3px; padding: 0 5px; line-height: 1.5; color: var(--bone-faint);
+}
+
+/* ── the row of cards ────────────────────────────────────────────── */
+.zw-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));
+  gap: 8px;
+}
+.zw-card {
+  position: relative;
+  display: flex; flex-direction: column; gap: 6px;
+  min-height: 150px;
+  padding: 11px 12px 14px;
+  border: 1px solid var(--hair); border-radius: 10px;
+  background: var(--ink-2);
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease;
+}
+.zw-card:hover { border-color: var(--hair-strong); }
+.zw-card.is-focus { border-color: var(--spark); background: var(--ink-3); }
+.zw-card.is-future { cursor: default; }
+.zw-card.is-error { border-color: rgba(224, 112, 95, 0.6); }
+.zw-card-top { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.zw-tech { color: var(--bone-faint); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zw-card.is-claude .zw-tech { color: var(--spark); opacity: .85; }
+.zw-ms { color: var(--bone-faint); flex: none; }
+.zw-card-title { font-size: 13.5px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
+.zw-caption { font-size: 11.5px; line-height: 1.45; color: var(--bone-dim); }
+.zw-out {
+  margin-top: auto; padding-top: 6px;
+  font-size: 12px; line-height: 1.4; color: var(--bone);
+  border-top: 1px dashed var(--hair);
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+}
+.zw-out b { font-weight: 650; }
+.zw-err { color: #e07a5f; }
+
+/* status glyphs */
+.zw-glyph { width: 12px; flex: none; text-align: center; font-size: 12px; line-height: 1; color: var(--bone-faint); }
+.zw-glyph.is-done { color: var(--spark); }
+.zw-glyph.is-error { color: #e07a5f; }
+.zw-glyph.is-running { color: var(--spark); display: inline-block; animation: zw-spin 1s linear infinite; }
+.zw-glyph.is-skipped { color: var(--bone-faint); opacity: .6; }
+@keyframes zw-spin { to { transform: rotate(360deg); } }
+
+/* the chip — the new chat travelling card to card */
+.zw-chip {
+  position: absolute; right: 8px; bottom: -9px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 6px;
+  max-width: calc(100% - 16px);
+  padding: 3px 9px 3px 7px; border-radius: 99px;
+  background: var(--bone); color: var(--ink);
+  font-size: 11px; font-weight: 600; line-height: 1.3;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+.zw-chip .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zw-chip-dot { width: 7px; height: 7px; border-radius: 99px; background: var(--spark); flex: none; }
+
+/* ── the drawer beneath ──────────────────────────────────────────── */
+.zw-detail {
+  border: 1px solid var(--hair); border-radius: 10px;
+  background: var(--ink-2);
+  padding: 12px 14px 14px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.zw-detail-head { display: flex; align-items: center; gap: 12px; color: var(--bone-dim); }
+.zw-error { display: flex; align-items: center; gap: 14px; color: #e07a5f; font-size: 12.5px; }
+.zw-btn {
+  background: var(--ink-3); border: 1px solid var(--hair-strong); color: var(--bone);
+  border-radius: 99px; padding: 5px 14px; font-size: 12px; font-weight: 600;
+}
+.zw-btn:hover { border-color: var(--spark); color: var(--spark); }
+
+.zw-cardout-title { font-weight: 700; font-size: 14px; }
+.zw-cardout-sum { font-size: 12.5px; line-height: 1.5; color: var(--bone-dim); margin: 3px 0 6px; }
+
+.zw-vec { display: flex; align-items: flex-end; gap: 6px; height: 54px; margin-top: 8px; }
+.zw-vec-bar { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; height: 100%; width: 30px; }
+.zw-vec-bar > span { display: block; width: 100%; min-height: 2px; border-radius: 2px 2px 0 0; }
+.zw-vec-bar em { font-style: normal; color: var(--bone-faint); font-size: 8.5px; letter-spacing: 0; text-transform: none; }
+
+.zw-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.zw-table th { text-align: left; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--bone-faint); font-weight: 500; padding: 4px 8px 6px 0; border-bottom: 1px solid var(--hair); }
+.zw-table td { padding: 5px 8px 5px 0; border-bottom: 1px solid var(--hair); vertical-align: top; color: var(--bone); }
+.zw-table tr.zw-rej td { color: var(--bone-faint); }
+.zw-table td.zw-mono { color: var(--bone-faint); letter-spacing: .04em; text-transform: none; font-size: 10.5px; }
+
+.zw-gates { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.zw-gates li { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 8px; background: var(--ink-3); }
+.zw-gates li.is-downgrade { border-left: 2px solid var(--spark); }
+.zw-gates li.is-refuse { border-left: 2px solid #e07a5f; }
+.zw-gate-name { font-size: 13px; }
+.zw-gate-name s { color: var(--bone-faint); text-decoration-color: #e07a5f; }
+
+.zw-bundles, .zw-overrides { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; }
+.zw-bundles li { display: flex; align-items: center; gap: 8px; }
+.zw-overrides { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--hair); }
+.zw-overrides li { display: flex; gap: 10px; color: var(--bone-dim); }
+.zw-overrides .zw-mono { color: var(--spark); flex: none; padding-top: 2px; }
+
+.zw-inspect { border-top: 1px solid var(--hair); padding-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.zw-json summary { cursor: pointer; color: var(--bone-dim); padding: 4px 0; list-style: none; display: flex; gap: 8px; align-items: baseline; }
+.zw-json summary::before { content: '▸'; color: var(--bone-faint); }
+.zw-json[open] summary::before { content: '▾'; }
+.zw-pre {
+  margin: 4px 0 6px; padding: 10px 12px; max-height: 320px; overflow: auto;
+  background: var(--ink); border: 1px solid var(--hair); border-radius: 8px;
+  font-family: var(--font-mono); font-size: 11px; line-height: 1.5; color: var(--bone-dim);
+  white-space: pre; scrollbar-width: thin;
+}
+
+/* ── concern map ─────────────────────────────────────────────────── */
+.zw-map { display: flex; flex-direction: column; gap: 8px; }
+.zw-map-svg {
+  width: 100%; height: 320px; display: block;
+  background: var(--ink); border: 1px solid var(--hair); border-radius: 8px;
+  color: var(--bone);
+}
+.zw-map.is-compact .zw-map-svg { height: 240px; }
+.zw-map-tip { font-family: var(--font-sans); font-size: 11px; fill: var(--bone); }
+.zw-map-foot { display: flex; flex-direction: column; gap: 6px; color: var(--bone-faint); }
+.zw-map-near { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; counter-reset: near; }
+.zw-map-near li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--bone); }
+.zw-map-near li::before { counter-increment: near; content: counter(near); font-family: var(--font-mono); font-size: 10px; color: var(--bone-faint); width: 10px; }
+.zw-map-near .t { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zw-map-near .s { color: var(--spark); }
+.zw-map-swatch { width: 8px; height: 8px; border-radius: 99px; flex: none; display: inline-block; }
+
+.zw-attach { display: grid; grid-template-columns: minmax(0, 3fr) minmax(200px, 2fr); gap: 14px; }
+.zw-scores { display: flex; flex-direction: column; gap: 7px; }
+.zw-score { display: grid; grid-template-columns: minmax(0, 1fr) 90px 36px; align-items: center; gap: 8px; font-size: 12.5px; color: var(--bone-dim); }
+.zw-score.is-top { color: var(--bone); font-weight: 600; }
+.zw-score .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zw-score-bar { height: 6px; background: var(--ink-3); border-radius: 99px; overflow: hidden; }
+.zw-score-bar span { display: block; height: 100%; background: var(--bone-faint); border-radius: 99px; }
+.zw-score.is-top .zw-score-bar span { background: var(--spark); }
+.zw-score .zw-mono { text-align: right; color: var(--bone-faint); }
+
+/* ── narrow: stack, and let the row wrap tighter ─────────────────── */
+@media (max-width: 900px) {
+  .zw-attach { grid-template-columns: 1fr; }
+  .zw-cards { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .zw-stage { padding: 12px 14px 20px; }
+}
+@media (max-width: 640px) {
+  .zw-map-svg { height: 240px; }
+}
+
+/* ── the frame that splits into Claude UI + stage ────────────────── */
+.proto-frame { flex: 1; min-width: 0; min-height: 0; display: flex; }
+.proto-frame.is-stacked { flex-direction: column; }
+.proto-frame.is-stacked .cl-app { min-height: 0; }
+.zw-call + .zw-call { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--hair); }

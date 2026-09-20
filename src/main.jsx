@@ -7,6 +7,7 @@ import '@fontsource/ibm-plex-mono/500.css';
 import './styles/base.css';
 import './styles/landing.css';
 import './styles/proto.css';
+import './styles/stage.css';
 import App from './App';
 import { BundleProvider } from './state/store';
 
