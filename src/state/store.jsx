@@ -40,6 +40,7 @@ export const freshState = (scenario = 'meera') => ({
   collapsed: { apartment: true, spanish: true }, // chevron state persists per bundle (Fig. 4)
   deleted: {}, // chatId -> true (A14: delete behaves exactly as today)
   arrivals: [], // simulated incoming chats (J-2)
+  liveChats: [], // real chats created in the demo, carded by Claude (v0.2 beat 1)
   failNext: false,
   highlightId: null, // freshly-joined chat, briefly marked
   toast: null, // { id, text, undo: {type, payload} | null }
@@ -177,6 +178,18 @@ export function reducer(state, action) {
       };
     }
 
+    case 'CHAT_CREATED': { // v0.2 beat 1 — a real chat, carded by Claude
+      const chat = action.chat;
+      if (state.liveChats.some((c) => c.id === chat.id)) return state;
+      const joins = state.phase === 'ready' && chat.concern && !state.hidden[chat.concern];
+      return {
+        ...state,
+        liveChats: [chat, ...state.liveChats],
+        highlightId: chat.id,
+        journeys: joins ? mark(state, 'J2') : state.journeys,
+      };
+    }
+
     case 'CLEAR_HIGHLIGHT':
       return state.highlightId === action.id ? { ...state, highlightId: null } : state;
 
@@ -271,7 +284,8 @@ export function isBundleCandidate(chat) {
 export function selectIndex(state) {
   const base = state.scenario === 'meera' ? MEERA_CHATS : FRESH_CHATS;
   const arrivals = INCOMING_CHATS.filter((ch) => state.arrivals.includes(ch.id));
-  const all = [...arrivals, ...base].filter((ch) => !state.deleted[ch.id]);
+  const live = state.scenario === 'meera' ? state.liveChats || [] : [];
+  const all = [...live, ...arrivals, ...base].filter((ch) => !state.deleted[ch.id]);
 
   const nonProject = all.filter((ch) => !ch.project).sort(byNewest);
 
