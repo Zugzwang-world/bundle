@@ -5,11 +5,16 @@
 const DIRECT_URL = 'https://api.anthropic.com/v1/messages';
 const PROXY_URL = '/api/messages';
 
-const env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
+// Only these exact property reads are replaced by Vite at build time. Never read
+// import.meta.env as a whole object: Vite would inline every VITE_* value, key included.
+function readEnv(read) {
+  try { return read() || ''; } catch { return ''; } // undefined outside Vite (smoke/tests)
+}
+const localKey = readEnv(() => import.meta.env.VITE_ANTHROPIC_API_KEY);
 export const config = {
-  apiKey: env.VITE_ANTHROPIC_API_KEY || '',
-  model: env.VITE_MODEL || 'claude-fable-5-1',
-  mode: env.VITE_ANTHROPIC_API_KEY ? 'direct' : 'proxy',
+  apiKey: localKey,
+  model: readEnv(() => import.meta.env.VITE_MODEL) || 'claude-fable-5-1',
+  mode: localKey ? 'direct' : 'proxy',
 };
 
 // The composer is always enabled: direct mode has a key, proxy mode defers to the server.
