@@ -10,10 +10,14 @@ const PROXY_URL = '/api/messages';
 function readEnv(read) {
   try { return read() || ''; } catch { return ''; } // undefined outside Vite (smoke/tests)
 }
-const localKey = readEnv(() => import.meta.env.VITE_ANTHROPIC_API_KEY);
+// Node fallback (scripts, smoke runs with `node --env-file=.env`): process.env is undefined in
+// the browser, so the typeof guard keeps this a no-op under Vite.
+const nodeEnv = (name) =>
+  (typeof process !== 'undefined' && process.env && process.env[name]) || '';
+const localKey = readEnv(() => import.meta.env.VITE_ANTHROPIC_API_KEY) || nodeEnv('VITE_ANTHROPIC_API_KEY');
 export const config = {
   apiKey: localKey,
-  model: readEnv(() => import.meta.env.VITE_MODEL) || 'claude-fable-5-1',
+  model: readEnv(() => import.meta.env.VITE_MODEL) || nodeEnv('VITE_MODEL') || 'claude-fable-5-1',
   mode: localKey ? 'direct' : 'proxy',
 };
 

@@ -1,0 +1,431 @@
+{
+  "meera": [
+    {
+      "id": "r1",
+      "title": "Questions to ask a financial adviser",
+      "summary": "She asked what to raise before hiring a fee-only adviser for her retirement savings. Claude suggested asking about SEBI registration, how fees are charged, commission conflicts, and how they would handle her fixed deposits and senior citizen schemes.",
+      "date": "2026-06-26",
+      "concern": "retirement",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "r2",
+      "title": "Pension withdrawal tax rules",
+      "summary": "She asked whether her monthly pension and a planned lump-sum withdrawal are taxable. Claude explained pension is taxed as salary income with standard deduction, commuted pension rules, and how TDS applies under the new regime.",
+      "date": "2026-06-09",
+      "concern": "retirement",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "r3",
+      "title": "Senior citizen savings scheme rates",
+      "summary": "She asked about the current Senior Citizen Savings Scheme interest rate and how it compares with bank fixed deposits. Claude explained the quarterly rate setting, the 30 lakh deposit limit, five-year tenure, and how interest is taxed.",
+      "date": "2026-05-21",
+      "concern": "retirement",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "r4",
+      "title": "Monthly budget on a fixed income",
+      "summary": "She asked how to plan a monthly budget on her pension and fixed deposit interest. Claude suggested listing fixed costs like society maintenance, medicines and groceries first, keeping a small emergency buffer, and tracking spending in a simple notebook.",
+      "date": "2026-05-03",
+      "concern": "retirement",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "r5",
+      "title": "Tax on pension withdrawals",
+      "summary": "She asked how her monthly pension and any lump-sum withdrawals are taxed in India. Claude explained that pension counts as salary income, noted the standard deduction and senior citizen exemption limits, and suggested checking Form 16 from her pension office.",
+      "date": "2026-04-15",
+      "concern": "retirement",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "r6",
+      "title": "How annuities work",
+      "summary": "She asked how annuities work and whether one suits a retiree in India. Claude explained immediate versus deferred plans, LIC and other insurer options, payout frequencies, taxation of the income, and why comparing rates with bank fixed deposits matters.",
+      "date": "2026-04-08",
+      "concern": "retirement",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "r7",
+      "title": "Is this bank letter about my pension genuine",
+      "summary": "Meera asked, as part of her retirement-income planning, whether a bank letter about her pension was genuine; the chat focused on assessing the letter's authenticity to protect her pension funds from possible fraud.",
+      "date": "2026-04-02",
+      "concern": "retirement",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "r8",
+      "title": "EPF withdrawal rules after retirement",
+      "summary": "She asked how to withdraw her full EPF balance after retirement. Claude explained the online claim via UAN portal, Form 19, needed KYC details, and that post-retirement withdrawal is tax-free.",
+      "date": "2026-03-20",
+      "concern": "retirement",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "r9",
+      "title": "Defined benefit vs defined contribution",
+      "summary": "She asked how a defined benefit pension differs from a defined contribution scheme like NPS. Claude explained that one promises a fixed monthly payout while the other depends on contributions and market returns, and noted which suits a retiree.",
+      "date": "2026-03-12",
+      "concern": "retirement",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "a1",
+      "title": "Two-bedroom flats near Dadar station",
+      "summary": "Meera asked about two-bedroom flats near Dadar station for her ongoing flat hunt in Mumbai; we compared Dadar West and Parel options, noted likely budgets around ₹2.5–3 crore, and flagged checking society age and lift access.",
+      "date": "2026-05-12",
+      "concern": "apartment",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "a2",
+      "title": "Are broker fees negotiable in Mumbai",
+      "summary": "She asked whether real estate brokers' fees in Mumbai can be bargained down when renting a flat. Claude explained the usual one-month brokerage norm, that it is often negotiable especially for longer leases, and suggested confirming terms in writing beforehand.",
+      "date": "2026-05-08",
+      "concern": "apartment",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "a3",
+      "title": "Carpet area vs built-up area",
+      "summary": "Meera asked about carpet vs built-up vs super built-up area for her Mumbai flat hunt near Dadar; learned RERA requires carpet-area quotes, that built-up can inflate size by roughly 20–35%, and to compare prices per carpet square foot.",
+      "date": "2026-04-24",
+      "concern": "apartment",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "a4",
+      "title": "Registration and stamp duty basics",
+      "summary": "She asked how property registration and stamp duty work in Maharashtra. Claude explained current Mumbai rates, the registration fee cap, ready reckoner values, and the concession available to women buyers.",
+      "date": "2026-04-19",
+      "concern": "apartment",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "a5",
+      "title": "Society transfer charges — who pays",
+      "summary": "She asked who pays the housing society transfer premium when selling a flat in Mumbai. Claude explained the Maharashtra cap of Rs 25,000, that it is usually split or negotiated between buyer and seller, and suggested checking the society bye-laws.",
+      "date": "2026-04-11",
+      "concern": "apartment",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "s1",
+      "title": "Ser vs estar, again",
+      "summary": "She asked again how to choose between ser and estar in Spanish, having mixed them up in her class. Claude reviewed permanent traits versus states and locations, gave everyday example sentences, and suggested a few memory cues.",
+      "date": "2026-06-24",
+      "concern": "spanish",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "s2",
+      "title": "Past tense of ir",
+      "summary": "She asked how to form the past tense of the Spanish verb ir. Claude explained its irregular preterite forms (fui, fuiste, fue, fuimos, fueron), noted they are identical to ser, and gave simple example sentences about going places.",
+      "date": "2026-06-18",
+      "concern": "spanish",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "s3",
+      "title": "Ordering food politely in Spanish",
+      "summary": "She asked how to order meals politely in Spanish for an upcoming trip. Claude taught phrases like \"quisiera,\" \"por favor,\" and \"la cuenta, por favor,\" plus tips on greeting waiters and asking about vegetarian options.",
+      "date": "2026-06-12",
+      "concern": "spanish",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "s4",
+      "title": "Subjunctive triggers list",
+      "summary": "She asked for a clear list of Spanish phrases that trigger the subjunctive, such as espero que, es importante que and para que. Claude grouped them into wishes, doubts, emotions and purpose, with simple example sentences she could practise.",
+      "date": "2026-06-04",
+      "concern": "spanish",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "s5",
+      "title": "Practice dialogue: at the pharmacy",
+      "summary": "Meera did a Spanish practice dialogue set at a pharmacy, role-playing a customer with Claude to rehearse asking for medicines and describing symptoms in Spanish.",
+      "date": "2026-05-27",
+      "concern": "spanish",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "s6",
+      "title": "Por vs para with examples",
+      "summary": "She asked how to tell por from para in Spanish. Claude explained that por covers cause, means, and duration while para covers purpose, destination, and deadlines, with everyday example sentences she could practice.",
+      "date": "2026-05-18",
+      "concern": "spanish",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "s7",
+      "title": "Rolling the double r",
+      "summary": "She asked how to pronounce the rolled double r in Spanish words like \"perro\" and \"arroz.\" Claude suggested starting from the Hindi \"d\" and \"r\" sounds she already makes, practising \"tdr\" quickly, and relaxing the tongue tip.",
+      "date": "2026-05-09",
+      "concern": "spanish",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "s8",
+      "title": "Numbers above one thousand",
+      "summary": "Spanish lesson on saying and writing numbers above one thousand, covering how large numbers are formed in Spanish (thousands, millions) with practice examples.",
+      "date": "2026-04-30",
+      "concern": "spanish",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "s9",
+      "title": "Days, months and dates drill",
+      "summary": "She asked Claude to run a quick spoken-style drill on days of the week, months and ordinal dates in Spanish. Claude quizzed her in rounds, corrected her pronunciation and gender slips, and gave a short recap list to revise.",
+      "date": "2026-04-21",
+      "concern": "spanish",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "s10",
+      "title": "Common false friends",
+      "summary": "Meera asked about common Spanish false friends — words that look like English but mean something different — and learned examples to watch for so she avoids mixing them up in her Spanish practice.",
+      "date": "2026-04-12",
+      "concern": "spanish",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "s11",
+      "title": "Greetings for a video call",
+      "summary": "Spanish lesson: Meera asked how to greet people in Spanish on a video call, practicing suitable opening phrases for that setting.",
+      "date": "2026-03-30",
+      "concern": "spanish",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "s12",
+      "title": "Is Duolingo enough at seventy",
+      "summary": "Meera asked whether Duolingo alone could get her to conversational Spanish at seventy; Claude said it builds vocabulary but not speaking confidence, and suggested pairing it with weekly tutor sessions and Spanish radio like Radio Nacional.",
+      "date": "2026-03-16",
+      "concern": "spanish",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "h1",
+      "title": "Is this chest tightness after walking serious",
+      "summary": "Meera asked whether the chest tightness she gets after evening walks is serious, continuing her worry about her heart and blood pressure; Claude urged a prompt doctor visit and ECG and listed the warning signs to act on before the cardiologist referral.",
+      "date": "2026-03-18",
+      "concern": "health",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "h2",
+      "title": "What does a borderline HbA1c result mean",
+      "summary": "Meera asked what her borderline HbA1c of about 6.1% meant; Claude explained it points to prediabetes rather than diabetes and advised raising it with her cardiologist alongside the blood-pressure tablet and chest tightness on walks.",
+      "date": "2026-04-09",
+      "concern": "health",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "h3",
+      "title": "Amlodipine making my ankles swell — should I stop",
+      "summary": "Meera asked whether to stop her blood-pressure tablet amlodipine because of ankle swelling; advised not to stop on her own but to raise the side effect with her doctor or cardiologist, who may adjust the medication.",
+      "date": "2026-05-06",
+      "concern": "health",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "h4",
+      "title": "Cardiologist referral — what happens at the first visit",
+      "summary": "Following her heart and blood-pressure concerns (chest tightness on walks, BP tablet), Meera asked what to expect at her first cardiologist visit; Claude outlined how such an appointment typically goes and what to bring.",
+      "date": "2026-06-11",
+      "concern": "health",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "u1",
+      "title": "Draft a birthday message for Ravi",
+      "summary": "She asked for help writing a warm birthday message for Ravi, likely a son or grandson. Claude drafted a short, affectionate note with a blessing and a light personal touch she could adjust before sending on WhatsApp.",
+      "date": "2026-06-22",
+      "concern": null,
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "u2",
+      "title": "Recipe for masala oats",
+      "summary": "She asked for a simple masala oats recipe for breakfast. Claude gave a quick stovetop version with onion, tomato, peas, and mild spices, suggested using rolled oats, and noted how to adjust salt and chilli for a lighter dish.",
+      "date": "2026-06-02",
+      "concern": null,
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "u3",
+      "title": "Reset a hearing aid that keeps beeping",
+      "summary": "She asked why her hearing aid kept beeping and how to reset it. Claude explained the beeps usually signal a low battery or a needed restart, and walked her through changing the battery and holding the button to reset.",
+      "date": "2026-05-30",
+      "concern": null,
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "u4",
+      "title": "Word for the feeling of missing a place",
+      "summary": "She asked whether there is a single word for missing a place, and Claude offered nostalgia, homesickness, hiraeth and saudade, explaining that hiraeth and saudade carry a longing for somewhere or something that may not return.",
+      "date": "2026-05-15",
+      "concern": null,
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "u5",
+      "title": "What does deductible mean",
+      "summary": "She asked what \"deductible\" means on her health insurance policy. Claude explained it is the amount she pays out of pocket before the insurer starts covering costs, with a simple example in rupees.",
+      "date": "2026-04-28",
+      "concern": null,
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "u6",
+      "title": "Photo of a balcony plant — what is it",
+      "summary": "She shared a photo of a balcony plant to identify it. Claude suggested it was likely a money plant and advised indirect light, watering when the soil dried, and occasional trimming.",
+      "date": "2026-04-06",
+      "concern": null,
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "u7",
+      "title": "Weekend trip ideas near Lonavala",
+      "summary": "She asked for gentle weekend outings from Mumbai around Lonavala, suited to a senior traveller. Claude suggested Bhushi Dam, Karla Caves, Tiger Point and a quiet hotel stay, with train and cab options and advice to avoid peak monsoon crowds.",
+      "date": "2026-03-28",
+      "concern": null,
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "u8",
+      "title": "Knee exercises after morning walks",
+      "summary": "She asked which gentle exercises help stiff knees after her morning walks. Claude suggested seated leg raises, calf stretches and slow quad stretches, advised warming up first and stopping if pain sharpens, and recommended checking with her doctor.",
+      "date": "2026-03-24",
+      "concern": null,
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "p1",
+      "title": "October reading shortlist",
+      "summary": "She asked for help narrowing her book club's October options to three titles, sharing the longlist. Claude compared length, availability in Mumbai bookshops and libraries, and discussion potential, suggesting a balanced shortlist of one classic, one Indian novel, one non-fiction.",
+      "date": "2026-06-28",
+      "concern": null,
+      "project": "bookclub/notes",
+      "source": "fixture"
+    },
+    {
+      "id": "p2",
+      "title": "Discussion questions, ch. 4",
+      "summary": "She asked Claude for discussion questions to bring to her book club for chapter 4 of their current novel. Claude suggested several questions on the characters' motivations and themes, and she picked a few to note down for the meeting.",
+      "date": "2026-06-15",
+      "concern": null,
+      "project": "bookclub/notes",
+      "source": "fixture"
+    }
+  ],
+  "incoming": [
+    {
+      "id": "n1",
+      "title": "Compare two annuity quotes",
+      "summary": "She shared two immediate annuity quotes from LIC and a private insurer for a lump sum, and Claude helped compare monthly payouts, return-of-purchase-price terms, and tax treatment, suggesting she check the joint-life option with her husband.",
+      "date": "today",
+      "concern": "retirement",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "n2",
+      "title": "Practice: booking a taxi in Spanish",
+      "summary": "She practised asking for a taxi in Spanish, learning phrases for stating her destination, asking the fare, and requesting a receipt. Claude corrected her pronunciation notes and gave polite ways to greet and thank the driver.",
+      "date": "today",
+      "concern": "spanish",
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "n3",
+      "title": "Is a nominee different from an heir",
+      "summary": "She asked whether naming a nominee on her bank account makes them the heir. Claude explained a nominee only receives the money as a trustee; legal heirs under a will inherit it.",
+      "date": "today",
+      "concern": "retirement",
+      "project": null,
+      "source": "fixture"
+    }
+  ],
+  "fresh": [
+    {
+      "id": "f1",
+      "title": "Feedback on a cover letter",
+      "summary": "She shared a cover letter she had drafted for a part-time library assistant role and asked for feedback. Claude suggested tightening the opening, highlighting her organisational experience, and keeping it to one page.",
+      "date": "2026-08-05",
+      "concern": null,
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "f2",
+      "title": "Fix a leaky kitchen tap",
+      "summary": "She asked how to stop her kitchen tap dripping. Claude explained shutting off the supply valve under the sink, replacing the worn washer or cartridge, and when to call a plumber instead of attempting it herself.",
+      "date": "2026-08-03",
+      "concern": null,
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "f3",
+      "title": "Gift ideas under ₹500",
+      "summary": "She asked for thoughtful gift ideas under ₹500, likely for grandchildren or neighbours. Claude suggested small items like books, stationery sets, potted plants, homemade sweets in tins, and handmade cards, noting where to find them locally in Mumbai.",
+      "date": "2026-07-30",
+      "concern": null,
+      "project": null,
+      "source": "fixture"
+    },
+    {
+      "id": "f4",
+      "title": "What is a mutual fund",
+      "summary": "She asked what a mutual fund is and whether it suits a retiree. Claude explained pooled investing, the difference between equity and debt funds, SIPs versus lump sums, and suggested she compare low-cost options before deciding.",
+      "date": "2026-07-28",
+      "concern": null,
+      "project": null,
+      "source": "fixture"
+    }
+  ]
+}

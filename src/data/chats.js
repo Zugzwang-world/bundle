@@ -1,14 +1,34 @@
 // Demo data for the Bundle prototype.
 // Titles and dates follow the spec's figures (ZW-FS-001 §2, Fig. 1/3/7); the rest
 // fills out a believable four months of one person's index.
+//
+// Summaries live in meera.json, generated once by scripts/gen-summaries.mjs
+// (`npm run gen:summaries`); ids/titles/dates here are the source of truth and the
+// json only contributes `summary`, matched by id. A chat missing from the json gets ''.
+
+import meera from './meera.json' with { type: 'json' };
 
 export const CONCERNS = {
   retirement: { key: 'retirement', defaultName: 'Retirement planning' },
   apartment: { key: 'apartment', defaultName: 'Apartment hunt' },
   spanish: { key: 'spanish', defaultName: 'Spanish practice' },
+  health: { key: 'health', defaultName: 'Health' },
 };
 
-const c = (id, title, date, concern = null, project = null) => ({ id, title, date, concern, project });
+const SUMMARIES = new Map(
+  [...(meera.meera || []), ...(meera.incoming || []), ...(meera.fresh || [])].map((ch) => [ch.id, ch.summary || '']),
+);
+
+// `concern` is a fixture hint for the simulated path only; the engine never reads it.
+const c = (id, title, date, concern = null, project = null) => ({
+  id,
+  title,
+  summary: SUMMARIES.get(id) || '',
+  date,
+  concern,
+  project,
+  source: 'fixture',
+});
 
 // Dates are 2026. Labels are derived (e.g. "Jun 26").
 export const MEERA_CHATS = [
@@ -43,6 +63,12 @@ export const MEERA_CHATS = [
   c('s10', 'Common false friends', '2026-04-12', 'spanish'),
   c('s11', 'Greetings for a video call', '2026-03-30', 'spanish'),
   c('s12', 'Is Duolingo enough at seventy', '2026-03-16', 'spanish'),
+
+  // ── Health scare · 4 (v0.2, A5) — exists so the safety gate has something to downgrade ──
+  c('h1', 'Is this chest tightness after walking serious', '2026-03-18', 'health'),
+  c('h2', 'What does a borderline HbA1c result mean', '2026-04-09', 'health'),
+  c('h3', 'Amlodipine making my ankles swell — should I stop', '2026-05-06', 'health'),
+  c('h4', 'Cardiologist referral — what happens at the first visit', '2026-06-11', 'health'),
 
   // ── Ungrouped — the honest residue (Fig. 3) ───────────────────────
   c('u1', 'Draft a birthday message for Ravi', '2026-06-22'),

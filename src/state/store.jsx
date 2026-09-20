@@ -13,7 +13,15 @@ import { CONCERNS, MEERA_CHATS, FRESH_CHATS, INCOMING_CHATS, byNewest } from '..
     paused     J-7 — memory turned off while Bundle was on
 
   Corrections (names / removed / hidden / collapsed) persist across
-  off→on and across memory pauses — §11, Q2, J-6 ("resumes rather than restarts").
+  off→on and across memory pauses — §11, Q2, J-6 ("resumes rather than restarts") —
+  and across reloads (D7): see the persistence block at the bottom of this file.
+
+  engine: 'sim' | 'live'
+    sim   v0.1 path — the provider's timer resolves 'generating' with GENERATION_DONE and
+          selectIndex groups by the fixtures' `concern` (state.bundles stays null).
+    live  v0.2 path — whenever phase becomes 'generating', the pipeline (UI lane /
+          src/engine/pipeline.js) runs Form with state.runId and dispatches
+          BUNDLES_FORMED or GENERATION_FAILED carrying that runId. The timer is off.
 */
 
 export const JOURNEYS = [
@@ -34,9 +42,9 @@ export const freshState = (scenario = 'meera') => ({
   pausedFrom: null,
   everFormed: false,
   noteDismissed: false, // "Bundled by Claude…" first-formation note (§9.1)
-  names: {}, // concernKey -> person's name (INV-3: never overwritten)
+  names: {}, // bundleId (concernKey in the sim path) -> person's name (INV-3: never overwritten)
   removed: {}, // chatId -> true (J-4: a removal is remembered)
-  hidden: {}, // concernKey -> true (J-5/R3: stays hidden)
+  hidden: {}, // bundleId -> true (J-5/R3: stays hidden)
   collapsed: { apartment: true, spanish: true }, // chevron state persists per bundle (Fig. 4)
   deleted: {}, // chatId -> true (A14: delete behaves exactly as today)
   arrivals: [], // simulated incoming chats (J-2)
@@ -44,14 +52,30 @@ export const freshState = (scenario = 'meera') => ({
   failNext: false,
   highlightId: null, // freshly-joined chat, briefly marked
   toast: null, // { id, text, undo: {type, payload} | null }
-  renaming: null, // concernKey during inline rename
+  renaming: null, // bundleId during inline rename
   journeys: {},
-  runId: 0, // increments per generation run (timer identity)
+  runId: 0, // increments per generation run (timer / pipeline identity)
+  engine: 'sim', // 'sim' | 'live' — see header
+  bundles: null, // null until an engine run; then Bundle[] (CONTRACT.md shape)
+  rejected: [], // [{ cluster, reason }] from the last Form run (D4)
+  overrides: [], // [{ rule, detail }] — what the merge overrode (Merge stage card)
+  lastAttach: null, // { chatId, bundleId, runnerUp, reason } from the last Attach run (D6)
 });
 
 function mark(state, j) {
   if (state.journeys[j]) return state.journeys;
   return { ...state.journeys, [j]: true };
+}
+
+// A bundle counts as formed when at least one of its chats can still render
+// (not removed, not deleted). Hidden bundles still count: hiding is the person's
+// choice, and "too little history" would be the wrong sentence for it.
+function anyVisibleChat(state, bundles) {
+  return bundles.some((b) => b.chatIds.some((id) => !state.removed[id] && !state.deleted[id]));
+}
+
+function normaliseBundle(b) {
+  return { ...b, chatIds: [...new Set(Array.isArray(b.chatIds) ? b.chatIds : [])] };
 }
 
 export function reducer(state, action) {
@@ -69,13 +93,15 @@ export function reducer(state, action) {
         };
       }
       // Turning on. If bundles already formed once, resume — corrections kept (J-6).
-      if (state.everFormed && !state.failNext) {
+      // In the live engine, on re-runs Form and merges again (B6 rule 6); the merge
+      // is what keeps the corrections, and the Merge stage shows what it overrode.
+      if (state.everFormed && !state.failNext && state.engine !== 'live') {
         return { ...state, bundleOn: true, phase: 'ready' };
       }
       return { ...state, bundleOn: true, phase: 'generating', runId: state.runId + 1 };
     }
 
-    case 'GENERATION_DONE': {
+    case 'GENERATION_DONE': { // simulated path — the provider only fires it when engine !== 'live'
       if (state.phase !== 'generating' || action.runId !== state.runId) return state;
       // INV-4, belt and braces: no run resolves while memory is off. Unreachable by
       // construction (TOGGLE_MEMORY re-routes 'generating' → 'paused', and the resume
@@ -85,6 +111,59 @@ export function reducer(state, action) {
       if (state.scenario === 'fresh') return { ...state, phase: 'thin' };
       return { ...state, phase: 'ready', everFormed: true, journeys: mark(state, 'J1') };
     }
+
+    case 'BUNDLES_FORMED': { // live path — the engine's Form + merge result
+      if (state.phase !== 'generating' || action.runId !== state.runId) return state;
+      if (!state.memoryOn) return state; // INV-4
+      if (state.failNext) return { ...state, phase: 'failed', failNext: false }; // demo "fail next" still works live
+      const bundles = (action.bundles || []).filter((b) => b && b.id != null).map(normaliseBundle);
+      const formed = anyVisibleChat(state, bundles);
+      return {
+        ...state,
+        bundles,
+        rejected: action.rejected || [],
+        overrides: action.overrides || [],
+        phase: formed ? 'ready' : 'thin',
+        everFormed: true,
+        journeys: formed ? mark(state, 'J1') : state.journeys,
+      };
+    }
+
+    case 'GENERATION_FAILED': { // live path — §9 COULDN'T BUNDLE, list untouched (D9)
+      if (state.phase !== 'generating' || action.runId !== state.runId) return state;
+      return { ...state, phase: 'failed', failNext: false };
+    }
+
+    case 'BUNDLE_ATTACHED': { // B6 rule 4 — adds one chat to one bundle; renames nothing, moves nothing else
+      const { chatId, bundleId = null, runnerUp = null, reason = '' } = action;
+      const lastAttach = { chatId, bundleId, runnerUp, reason };
+      const target = bundleId != null && state.bundles ? state.bundles.find((b) => b.id === bundleId) : null;
+      const joins = Boolean(target) && !state.hidden[bundleId] && !target.chatIds.includes(chatId);
+      const bundles = joins
+        ? state.bundles.map((b) => (b.id === bundleId ? { ...b, chatIds: [...b.chatIds, chatId] } : b))
+        : state.bundles;
+      return {
+        ...state,
+        bundles,
+        lastAttach,
+        highlightId: chatId,
+        journeys: joins && state.phase === 'ready' ? mark(state, 'J2') : state.journeys,
+      };
+    }
+
+    case 'CHAT_CARDED': { // a live chat gets its title + summary from Claude (D1)
+      if (!state.liveChats.some((c) => c.id === action.chatId)) return state;
+      return {
+        ...state,
+        liveChats: state.liveChats.map((c) =>
+          c.id === action.chatId
+            ? { ...c, title: action.title ?? c.title, summary: action.summary ?? c.summary }
+            : c),
+      };
+    }
+
+    case 'SET_ENGINE':
+      return action.mode === state.engine ? state : { ...state, engine: action.mode === 'live' ? 'live' : 'sim' };
 
     case 'RETRY': // §9 COULDN'T BUNDLE — retry is one tap (A12)
       if (!state.memoryOn) return state; // INV-4: Bundle never runs where memory does not
@@ -168,8 +247,10 @@ export function reducer(state, action) {
     case 'NEW_CHAT': { // J-2
       if (state.arrivals.length >= INCOMING_CHATS.length) return state;
       const chat = INCOMING_CHATS[state.arrivals.length];
+      // In the sim path the fixture concern places the chat; in the live path only
+      // BUNDLE_ATTACHED does, and it is the one that marks J2.
       const joins =
-        state.phase === 'ready' && chat.concern && !state.hidden[chat.concern];
+        state.bundles === null && state.phase === 'ready' && chat.concern && !state.hidden[chat.concern];
       return {
         ...state,
         arrivals: [...state.arrivals, chat.id],
@@ -181,7 +262,8 @@ export function reducer(state, action) {
     case 'CHAT_CREATED': { // v0.2 beat 1 — a real chat, carded by Claude
       const chat = action.chat;
       if (state.liveChats.some((c) => c.id === chat.id)) return state;
-      const joins = state.phase === 'ready' && chat.concern && !state.hidden[chat.concern];
+      const joins =
+        state.bundles === null && state.phase === 'ready' && chat.concern && !state.hidden[chat.concern];
       return {
         ...state,
         liveChats: [chat, ...state.liveChats],
@@ -201,8 +283,8 @@ export function reducer(state, action) {
 
     case 'SET_SCENARIO': {
       if (action.scenario === state.scenario) return state;
-      const next = freshState(action.scenario);
-      return { ...next, journeys: state.journeys }; // walked journeys survive scenario swaps
+      const next = hydrateState(action.scenario);
+      return { ...next, journeys: state.journeys, engine: state.engine }; // walked journeys + engine mode survive scenario swaps
     }
 
     case 'DISMISS_NOTE':
@@ -214,29 +296,117 @@ export function reducer(state, action) {
     case 'CLEAR_TOAST':
       return state.toast?.id === action.id ? { ...state, toast: null } : state;
 
-    case 'RESET':
-      return freshState(state.scenario);
+    case 'RESET': // the provider removes the persisted corrections for this scenario
+      return { ...freshState(state.scenario), engine: state.engine };
 
     default:
       return state;
   }
 }
 
+/* ── Persistence (D7) ────────────────────────────────────────────────
+   Only the four corrections are stored — names, removed, hidden, collapsed — under
+   `bundle:corrections:<scenario>`. Never the key, never chats, never bundles.
+   Every localStorage access is guarded: the SSR smoke runs in Node.                */
+
+export const correctionsKey = (scenario) => `bundle:corrections:${scenario}`;
+
+const storage = () => {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return null;
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+};
+
+const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+
+// The four corrections as a plain blob (what gets written).
+export function serializeCorrections(state) {
+  return { names: state.names, removed: state.removed, hidden: state.hidden, collapsed: state.collapsed };
+}
+
+// Fresh defaults ⇒ nothing worth keeping (RESET, or every correction undone).
+export function isDefaultCorrections(state) {
+  const fresh = freshState(state.scenario);
+  const empty = (o) => Object.keys(o || {}).length === 0;
+  const sameCollapsed =
+    JSON.stringify(Object.entries(state.collapsed || {}).filter(([, v]) => v).sort()) ===
+    JSON.stringify(Object.entries(fresh.collapsed).filter(([, v]) => v).sort());
+  return empty(state.names) && empty(state.removed) && empty(state.hidden) && sameCollapsed;
+}
+
+// Merge a stored blob into a state (pure). Unknown or malformed fields are ignored.
+export function applyCorrections(state, blob) {
+  if (!isPlainObject(blob)) return state;
+  const pick = (field) => (isPlainObject(blob[field]) ? { ...state[field], ...blob[field] } : state[field]);
+  return { ...state, names: pick('names'), removed: pick('removed'), hidden: pick('hidden'), collapsed: pick('collapsed') };
+}
+
+export function loadCorrections(scenario) {
+  const ls = storage();
+  if (!ls) return null;
+  try {
+    const raw = ls.getItem(correctionsKey(scenario));
+    if (!raw) return null;
+    const blob = JSON.parse(raw);
+    return isPlainObject(blob) ? blob : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveCorrections(scenario, state) {
+  const ls = storage();
+  if (!ls) return;
+  try {
+    if (isDefaultCorrections(state)) ls.removeItem(correctionsKey(scenario));
+    else ls.setItem(correctionsKey(scenario), JSON.stringify(serializeCorrections(state)));
+  } catch {
+    /* quota / private mode — corrections still live in memory for this session */
+  }
+}
+
+export function clearCorrections(scenario) {
+  const ls = storage();
+  if (!ls) return;
+  try {
+    ls.removeItem(correctionsKey(scenario));
+  } catch {
+    /* ignore */
+  }
+}
+
+// Fresh state for a scenario with that scenario's stored corrections merged in.
+export function hydrateState(scenario = 'meera') {
+  return applyCorrections(freshState(scenario), loadCorrections(scenario));
+}
+
 const Ctx = createContext(null);
 
 export function BundleProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, undefined, () => freshState());
+  const [state, dispatch] = useReducer(reducer, undefined, () => hydrateState('meera'));
   const stateRef = useRef(state);
   stateRef.current = state;
 
   // Generation timer — §9 GENERATING never blocks the list; it just takes a moment.
+  // Simulated path only: in 'live' the pipeline resolves the run (BUNDLES_FORMED /
+  // GENERATION_FAILED), so the timer must not race it.
   useEffect(() => {
-    if (state.phase !== 'generating') return;
+    if (state.phase !== 'generating' || state.engine === 'live') return;
     const runId = state.runId;
     const ms = state.scenario === 'fresh' ? 1100 : 2200;
     const t = setTimeout(() => dispatch({ type: 'GENERATION_DONE', runId }), ms);
     return () => clearTimeout(t);
-  }, [state.phase, state.runId, state.scenario]);
+  }, [state.phase, state.runId, state.scenario, state.engine]);
+
+  // Corrections persist across reloads (D7). Written on every change of the four;
+  // when they are back at the defaults (RESET) the key is removed.
+  const { scenario, names, removed, hidden, collapsed } = state;
+  useEffect(() => {
+    saveCorrections(scenario, { scenario, names, removed, hidden, collapsed });
+  }, [scenario, names, removed, hidden, collapsed]);
 
   // Toasts auto-dismiss; Undo stays available while visible (§9.1).
   useEffect(() => {
@@ -281,6 +451,20 @@ export function isBundleCandidate(chat) {
   return true;
 }
 
+// The bundle shape both surfaces consume (Rows.jsx reads key / name / chats / collapsed).
+function viewBundle(state, key, defaultName, chats, extra = {}) {
+  return {
+    key,
+    id: key,
+    name: state.names[key] || defaultName, // INV-3
+    renamed: Boolean(state.names[key]),
+    chats,
+    collapsed: Boolean(state.collapsed[key]),
+    latest: chats[0]?.date || '0000',
+    ...extra,
+  };
+}
+
 export function selectIndex(state) {
   const base = state.scenario === 'meera' ? MEERA_CHATS : FRESH_CHATS;
   const arrivals = INCOMING_CHATS.filter((ch) => state.arrivals.includes(ch.id));
@@ -306,19 +490,37 @@ export function selectIndex(state) {
   const showBundles = state.phase === 'ready' && state.memoryOn;
 
   let bundles = [];
-  if (showBundles) {
+  if (showBundles && state.bundles) {
+    // Engine path: membership is the bundle's chatIds, filtered through the same
+    // candidacy rule (INV-4) and the person's corrections. A chat claimed by two
+    // bundles goes to the first that lists it, so the derivation stays a partition.
+    const claimed = new Set();
+    bundles = state.bundles
+      .filter((b) => !state.hidden[b.id])
+      .map((b) => {
+        const members = new Set(b.chatIds);
+        const chats = candidates.filter((ch) => {
+          if (!members.has(ch.id) || state.removed[ch.id] || claimed.has(ch.id)) return false;
+          claimed.add(ch.id);
+          return true;
+        });
+        return viewBundle(state, b.id, b.name, chats, {
+          nameSource: state.names[b.id] ? 'person' : b.nameSource || 'model',
+          domain: b.domain ?? null,
+          language: b.language ?? null,
+          sensitive: Boolean(b.sensitive),
+          concern: b.concern ?? '',
+        });
+      })
+      .filter((b) => b.chats.length > 0) // an emptied bundle simply isn't there
+      .sort((a, b) => byNewest({ date: a.latest }, { date: b.latest })); // §11: boring order
+  } else if (showBundles) {
+    // Simulated path (v0.1): the fixtures' concern hint stands in for the engine.
     bundles = Object.values(CONCERNS)
       .filter((def) => !state.hidden[def.key])
       .map((def) => {
         const chats = candidates.filter((ch) => ch.concern === def.key && !state.removed[ch.id]);
-        return {
-          key: def.key,
-          name: state.names[def.key] || def.defaultName, // INV-3
-          renamed: Boolean(state.names[def.key]),
-          chats,
-          collapsed: Boolean(state.collapsed[def.key]),
-          latest: chats[0]?.date || '0000',
-        };
+        return viewBundle(state, def.key, def.defaultName, chats, { nameSource: state.names[def.key] ? 'person' : 'model' });
       })
       .filter((b) => b.chats.length > 0) // an emptied bundle simply isn't there
       .sort((a, b) => byNewest({ date: a.latest }, { date: b.latest })); // §11: boring order

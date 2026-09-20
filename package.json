@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "esbuild scripts/statetest.js --bundle --format=esm --platform=node --jsx=automatic --outfile=scripts/.st.mjs --external:react --log-level=error && node scripts/.st.mjs && rm scripts/.st.mjs",
     "smoke": "esbuild scripts/smoke.jsx --bundle --format=esm --platform=node --jsx=automatic --outfile=scripts/.smoke.mjs --external:react --external:react-dom --external:react-router-dom --external:framer-motion --log-level=error && node scripts/.smoke.mjs && rm scripts/.smoke.mjs",
-    "test:unit": "vitest run"
+    "test:unit": "vitest run",
+    "gen:summaries": "node --env-file=.env scripts/gen-summaries.mjs"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.3.0",

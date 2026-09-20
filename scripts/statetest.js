@@ -7,19 +7,19 @@ const assert = (cond, msg) => { if (!cond) { console.error('FAIL:', msg); proces
 
 // baseline: off = today, byte for byte (A1)
 let ix = selectIndex(s);
-assert(ix.listChats.length === 34 && ix.bundles.length === 0 && !ix.showBundles, 'A1 off: flat list of 34, no bundles');
+assert(ix.listChats.length === 38 && ix.bundles.length === 0 && !ix.showBundles, 'A1 off: flat list of 38, no bundles');
 assert(ix.projects[0].chats.length === 2, 'project section intact');
 
 // J-1
 d({ type: 'TOGGLE_BUNDLE' });
 assert(s.phase === 'generating', 'J-1 generating');
 ix = selectIndex(s);
-assert(ix.listChats.length === 34, 'INV-1: list untouched during generation');
+assert(ix.listChats.length === 38, 'INV-1: list untouched during generation');
 d({ type: 'GENERATION_DONE', runId: s.runId });
 assert(s.phase === 'ready' && s.journeys.J1, 'J-1 ready');
 ix = selectIndex(s);
 const counts = Object.fromEntries(ix.bundles.map(b => [b.key, b.chats.length]));
-assert(counts.retirement === 9 && counts.apartment === 5 && counts.spanish === 12, 'formation counts 9/5/12');
+assert(counts.retirement === 9 && counts.apartment === 5 && counts.spanish === 12 && counts.health === 4, 'formation counts 9/5/12/4');
 assert(ix.listChats.length === 8, 'All chats = the 8 ungrouped (Fig. 3)');
 assert(ix.bundles[0].key === 'retirement', 'bundles sort by most recent activity (§11)');
 
@@ -53,7 +53,7 @@ assert(ix.listChats.some(c => c.id === 's1'), 'J-5 its chats visible chronologic
 d({ type: 'TOGGLE_BUNDLE' });
 assert(s.phase === 'off' && s.journeys.J6, 'J-6 off instantly');
 ix = selectIndex(s);
-assert(ix.listChats.length === 35 && ix.bundles.length === 0, 'off restores flat list (34 + 1 arrival)');
+assert(ix.listChats.length === 39 && ix.bundles.length === 0, 'off restores flat list (38 + 1 arrival)');
 d({ type: 'TOGGLE_BUNDLE' });
 assert(s.phase === 'ready', 'J-6 back on resumes without regeneration');
 ix = selectIndex(s);
@@ -75,7 +75,7 @@ d({ type: 'TOGGLE_BUNDLE' });
 assert(s.phase === 'generating', 'fail-next forces regeneration');
 d({ type: 'GENERATION_DONE', runId: s.runId });
 assert(s.phase === 'failed', 'A12 failed state');
-assert(selectIndex(s).listChats.length === 35, 'A12 index untouched on failure');
+assert(selectIndex(s).listChats.length === 39, 'A12 index untouched on failure');
 d({ type: 'RETRY' });
 d({ type: 'GENERATION_DONE', runId: s.runId });
 assert(s.phase === 'ready', 'A12 retry succeeds');
@@ -101,7 +101,7 @@ d({ type: 'TOGGLE_BUNDLE' });
 d({ type: 'GENERATION_DONE', runId: s.runId });
 ix = selectIndex(s);
 const bundled = ix.bundles.flatMap((b) => b.chats);
-assert(bundled.length === 26, 'A5 precondition: bundles formed (9+5+12)');
+assert(bundled.length === 30, 'A5 precondition: bundles formed (9+5+12+4)');
 assert(ix.projects[0].chats.length === 2, 'A5 precondition: project chats exist to be excluded');
 assert(!bundled.some((c) => c.project), 'A5 no bundle contains a Project chat');
 assert(!bundled.some((c) => c.incognito), 'A5 no bundle contains an incognito chat');
